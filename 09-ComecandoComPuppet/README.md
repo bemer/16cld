@@ -6,6 +6,10 @@ Ao trabalhar com o `Puppet`, você pode escolher entre basicamente duas arquitet
 
 Neste tutorial, utilizaremos a arquitetura client-server, instalando e configurando o `Puppet Server` e instalando `Puppet Agents` em containers que irão simular máquinas virtuais.
 
+| Usuário | Senha   |
+|---------|-------------------|
+| puppet-admin  | puppetserver |
+
 
 ## 1. Instalação do Puppet Master
 
@@ -53,9 +57,9 @@ Isto significa que seu `Puppet Master` está devidamente instalado e em execuç�
 
 ## 2. Instalando o Puppet Agent
 
-Para a execução deste lab, vamos utilizar a mesma máquina virtual que utilizamos nos labs anteriores, chamada `chef-server`. Desta maneira, é importante lembrar que por mais que estejamos instalando pacotes em uma máquina chamada `chef-server`, vamos utilizar o `Puppet` para este provisionamento.
+Para a execução deste lab, vamos utilizar a virtual que acabamos de criar, chamada `puppet-client`.
 
-Para a instalação do `Puppet Agent`, você deverá adicionar o repositório também no container. Para isto, execute os seguintes comandos no terminal do `chef-client`:
+Para a instalação do `Puppet Agent`, você deverá adicionar o repositório também no container. Para isto, execute os seguintes comandos no terminal do `puppet-client`:
 
     $ wget https://apt.puppetlabs.com/puppetlabs-release-pc1-xenial.deb
     $ sudo dpkg -i puppetlabs-release-pc1-xenial.deb
@@ -68,8 +72,8 @@ Feito isto, instale o `Puppet Agent` através do seguinte comando:
 Agora que o `Puppet Agent` foi instalado, vamos realizar uma configuração para que o Puppet Agent possa se comunicar com o Puppet Master. Para isto, precisamos editar o arquivo `/etc/hosts` e adicionar o endereço IP do Puppet Master. O arquivo hosts deverá ficar conforme abaixo:
 
     127.0.0.1       localhost
-    127.0.1.1       chef-client
-    <IP do Mater>   puppet-server
+    127.0.1.1       puppet-client
+    <IP do Master>   puppet-server puppet-server.fiap.com.br
 
     # The following lines are desirable for IPv6 capable hosts
     ::1     localhost ip6-localhost ip6-loopback
@@ -79,8 +83,8 @@ Agora que o `Puppet Agent` foi instalado, vamos realizar uma configuração para
 Agora, vamos editar o arquivo de configruração do Puppet Agent em nossa VM. Edite o arquivo `/etc/puppetlabs/puppet/puppet.conf` e insira o seguinte conteúdo:
 
     [main]
-    certname = chef-client
-    server = puppet-server
+    certname = puppet-client.fiap.com.br
+    server = puppet-server.fiap.com.br
 
 
 Inicie o Puppet Agent através dos seguintes comandos:
@@ -98,22 +102,22 @@ Agora, acessando a VM `puppet-server`, execute o seguinte comando para listar as
 
 Você deverá ver algo semelhate a:
 
-    "chef-client" (SHA256) 60:2F:BA:93:E8:8E:98:92:E8:EE:7C:B4:47:3B:0D:D5:0C:81:C4:8C:07
+    "puppet-client" (SHA256) 60:2F:BA:93:E8:8E:98:92:E8:EE:7C:B4:47:3B:0D:D5:0C:81:C4:8C:07
 
 Agora, ainda no `puppet-server` execute o seguinte comando para assinar o certificado:
 
-    $ sudo /opt/puppetlabs/bin/puppet cert sign chef-client
+    $ sudo /opt/puppetlabs/bin/puppet cert sign puppet-client.fiap.com.br
 
 A saída deverá ser semelhante a esta:
 
     Signing Certificate Request for:
-      "chef-client" (SHA256) 60:2F:BA:93:E8:8E:98:92:E8:EE:7C:B4:B7:0E:C5:41:FC:C4:9B:A2:77:FC:73:47:3B:0D:D5:0C:81:C4:8C:07
-    Notice: Signed certificate request for chef-client
-    Notice: Removing file Puppet::SSL::CertificateRequest chef-client at '/etc/puppetlabs/puppet/ssl/ca/requests/chef-client.pem'
+      "puppet-client" (SHA256) 60:2F:BA:93:E8:8E:98:92:E8:EE:7C:B4:B7:0E:C5:41:FC:C4:9B:A2:77:FC:73:47:3B:0D:D5:0C:81:C4:8C:07
+    Notice: Signed certificate request for puppet-client
+    Notice: Removing file Puppet::SSL::CertificateRequest puppet-client at '/etc/puppetlabs/puppet/ssl/ca/requests/puppet-client.pem'
 
-Agora, o Puppet Server já consegue se conectar ao node que será gerenciado, em nosso caso, chamado `chef-client`.
+Agora, o Puppet Server já consegue se conectar ao node que será gerenciado, em nosso caso, chamado `puppet-client`.
 
-Para validar a comunicação, em sua VM `chef-client`, onde o `Puppet Agent` foi instalado, execute o seguinte comando:
+Para validar a comunicação, em sua VM `puppet-client`, onde o `Puppet Agent` foi instalado, execute o seguinte comando:
 
     $ sudo /opt/puppetlabs/bin/puppet agent --test
 
@@ -122,7 +126,7 @@ A saída deverá ser semelhante a esta:
     Info: Using configured environment 'production'
     Info: Retrieving pluginfacts
     Info: Retrieving plugin
-    Info: Caching catalog for chef-client
+    Info: Caching catalog for puppet-client
     Info: Applying configuration version '1530232063'
     Notice: Applied catalog in 0.02 seconds
 
@@ -141,7 +145,7 @@ E insira o seguinte conteúdo:
       content => "Este arquivo foi criado pelo Puppet.\n"
     }
 
-Agora, na VM `chef-client`, execute o seguinte comando:
+Agora, na VM `puppet-client`, execute o seguinte comando:
 
     $ sudo /opt/puppetlabs/bin/puppet agent --test
 
@@ -150,7 +154,7 @@ O Puppet será executado, criando o arquivo `motd` no diretório `/tmp`. A saíd
     Info: Using configured environment 'production'
     Info: Retrieving pluginfacts
     Info: Retrieving plugin
-    Info: Caching catalog for chef-client
+    Info: Caching catalog for puppet-client
     Info: Applying configuration version '1530235205'
     Notice: /Stage[main]/Main/File[/tmp/motd]/ensure: defined content as '{md5}c83a034f3b55e6b2dceeeefd3d676435'
     Notice: Applied catalog in 0.02 seconds
@@ -187,7 +191,7 @@ Agora, crie um novo manifesto através do seguinte comando:
 
 E insira o seguinte conteúdo:
 
-    node 'chef-client' {
+    node 'puppet-client.fiap.com.br' {
       class { 'apache': }
       apache::vhost { 'localhost':
         port    => '8080',
@@ -197,8 +201,8 @@ E insira o seguinte conteúdo:
 
 Note que agora, estamos especificando qual node executará este manifesto.
 
-Após criar o arquivo, acesse a VM `chef-client` e execute o seguinte comando:
+Após criar o arquivo, acesse a VM `puppet-client` e execute o seguinte comando:
 
     $ sudo /opt/puppetlabs/bin/puppet agent --test
 
-Caso tudo esteja correto, após a execução deste comando, você poderá utilizar o browser de seu computador para acessar o `chef-client` na porta `8080` e deverá visualizar a página do Apache.
+Caso tudo esteja correto, após a execução deste comando, você poderá utilizar o browser de seu computador para acessar o `puppet-client` na porta `8080` e deverá visualizar a página do Apache.
