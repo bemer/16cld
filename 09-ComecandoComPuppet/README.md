@@ -191,7 +191,7 @@ Agora, crie um novo manifesto através do seguinte comando:
 
 E insira o seguinte conteúdo:
 
-    node 'puppet-client.fiap.com.br' {
+    node 'chef-client.fiap.com.br' {
       class { 'apache': }
       apache::vhost { 'localhost':
         port    => '8080',
