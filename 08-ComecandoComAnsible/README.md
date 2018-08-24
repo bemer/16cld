@@ -1,4 +1,4 @@
-# Começando com o Ansible
+# Começando com o Puppet
 
 O `Ansible` é uma plataforma de automação open source, bastante simples mas ainda assim muito poderosa. Neste tutorial utilizaremos as máquinas virtuais já existentes para instalar o Ansible e realizar configurações em hosts remotos utilizando esta ferramenta.
 
