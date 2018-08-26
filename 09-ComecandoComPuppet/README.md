@@ -1,5 +1,6 @@
 # Começando com o Puppet
 
+
 O `Puppet` provê ferramentas para automatizat a gestão de sua infra estrutura, sendo um produto open source com uma grande comunidade de usuários e desenvolvedores.
 
 Ao trabalhar com o `Puppet`, você pode escolher entre basicamente duas arquiteturas: uma arquitetura client-server, utilizando o `Puppet Master` e o `Puppet Agent` ou então uma arquitetura stand-alone, fazendo uso do `Puppet Apply`.
@@ -191,7 +192,7 @@ Agora, crie um novo manifesto através do seguinte comando:
 
 E insira o seguinte conteúdo:
 
-    node 'chef-client.fiap.com.br' {
+    node 'puppet-client.fiap.com.br' {
       class { 'apache': }
       apache::vhost { 'localhost':
         port    => '8080',
